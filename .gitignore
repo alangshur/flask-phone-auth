@@ -7,4 +7,6 @@ env
 # Virtual Studio Code
 .vscode
 
+# python
+*__pycache__
 
