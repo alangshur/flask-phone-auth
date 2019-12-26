@@ -6,3 +6,6 @@ venv
 
 # python
 *__pycache__
+
+# Flask config
+config.py
