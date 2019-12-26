@@ -1,5 +1,6 @@
 from flask import Flask
 from config import DevelopmentConfig, ProductionConfig
+from flask_pymongo import PyMongo
 import os
 
 # launch flask app
@@ -12,4 +13,8 @@ elif os.environ.get('FLASK_ENV') == 'production':
     app.config.from_object(ProductionConfig)
 else: app.logger.error('Invalid Flask environment.')
 
-from app import routes
+# connect mongo db
+mongo = PyMongo(app)
+
+from app.loot import routes
+from app.user import routes
