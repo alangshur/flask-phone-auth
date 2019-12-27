@@ -8,7 +8,7 @@ First, install all python dependencies. This setup is written for `pip3` version
 
 To setup and enter the virtual environment, use the following command.
 
-`$ virtualenv venv & source venv/bin/activate`
+`$ virtualenv venv ; source venv/bin/activate`
 
 Once in the virtual environment, you will be prompted with a notice from `autoenv` (if not, back out of the project directory and reenter). Once responding `yes` on this prompt, the appropriate environment variables will be loaded.
 
