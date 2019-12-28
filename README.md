@@ -31,6 +31,18 @@ With the project and environment set up, simply run the following command to lau
 }
 ```
 
+## `users` Collection
+
+`db.users` is a collection for managing validated users.
+
+```json
+{
+    'user_id': '[USER_ID]',
+    'account_amount': '[ACCOUNT_AMOUNT]',
+    
+}
+```
+
 ### `users` Collection
 
 ## Twilio
