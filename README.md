@@ -24,7 +24,7 @@ With the project and environment set up, simply run the following command to lau
 
 `db.pot_users` is a collection for managing pending users that are undergoing phone authentication. It uses a TTL index that automatically cleans documents after five minutes.
 
-```json
+```javascript
 {
     'phone_number': '[PHONE_NUMBER]',
     'validation_code': '[VALIDATION_CODE]'
@@ -35,7 +35,7 @@ With the project and environment set up, simply run the following command to lau
 
 `db.users` is a collection for managing validated users.
 
-```json
+```javascript
 {
     'user_id': '[USER_ID]',
     'account_amount': '[ACCOUNT_AMOUNT]',
