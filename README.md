@@ -39,18 +39,17 @@ With the project and environment set up, simply run the following command to lau
 {
     'user_id': '[USER_ID]',
     'account_amount': '[ACCOUNT_AMOUNT]',
-    'access_token': '[ACCESS_TOKEN]'
+    'access_token': '[ACCESS_TOKEN]',
+    'last_game_id': '[LAST_GAME_ID]'
 }
 ```
-
-### `users` Collection
 
 ## Twilio
 
 ### Creating Messaging Service
 
 ```python
-service = client.messaging \
+service = twilio.messaging \
     .services \
     .create(friendly_name='Roam Messaging Service')
 ```
@@ -58,7 +57,7 @@ service = client.messaging \
 ### Adding Phone Numbers
 
 ```python
-phone_number = client.messaging \
+phone_number = twilio.messaging \
     .services('[SERVICE_SID]') \
     .phone_numbers \
     .create(phone_number_sid='[PHONE_NUMBER_SID]')
@@ -67,8 +66,23 @@ phone_number = client.messaging \
 ### Creating Alphanumeric Sender ID
 
 ```python
-alpha_sender = client.messaging \
+alpha_sender = twilio.messaging \
     .services('[SERVICE_SID]') \
     .alpha_senders \
     .create(alpha_sender='Roam')
 ```
+
+## Security
+
+### Frontend Security
+
+- Encrypted access tokens and API URIs
+
+### Backend Security
+
+- HTTPS/SSL
+- Access token verification
+- Speed limiting and fraudulent movement detection (in consecutive nav API requests)
+- Protected location extraction (GMS/GPS in iOS)
+- Rate limiting on IP and access token
+- Mongo database encryption
