@@ -16,8 +16,7 @@ def userPhone():
         phoneNumber = request.args['phone_number']
 
         # authenticate request
-        if not authenticateBaseToken(baseToken, internalSalt, phoneNumber): 
-            raise Exception
+        assert(authenticateBaseToken(baseToken, internalSalt, phoneNumber))
 
         # generate/store validation number
         validationCode = ''.join(['{}'.format(randint(0, 9)) for phoneNumber in range(0, 6)])
@@ -37,8 +36,18 @@ def userPhone():
         )
 
         # send success response
-        response = { 'success': True }
-        return json.dumps(response)
+        return json.dumps({ 
+            'success': True,
+            'critical': False
+        })
+
+    except AssertionError:
+
+        # send critical response
+        return json.dumps({ 
+            'success': False,
+            'critical': True
+        })
 
     except Exception as e:
 
@@ -46,8 +55,10 @@ def userPhone():
         log.error(str(e))
 
         # send failure response
-        response = { 'success': False }
-        return json.dumps(response)
+        return json.dumps({ 
+            'success': False,
+            'critical': False
+        })
 
 @app.route('/user/validate')
 def userValidate():
@@ -59,8 +70,7 @@ def userValidate():
         validationCode = request.args['validation_code']
 
         # authenticate request
-        if not authenticateBaseToken(baseToken, internalSalt, validationCode): 
-            raise Exception
+        assert(authenticateBaseToken(baseToken, internalSalt, validationCode))
 
         # fetch validated user
         potUsers = mongo.db.pot_users.find({ 'validation_code': validationCode })
@@ -101,11 +111,19 @@ def userValidate():
             })
  
         # send success response
-        response = { 
+        return json.dumps({ 
             'success': True,
+            'critical': False,
             'access_token': accessToken
-        }
-        return json.dumps(response)
+        })
+
+    except AssertionError:
+
+        # send critical response
+        return json.dumps({ 
+            'success': False,
+            'critical': True
+        })
 
     except Exception as e:
 
@@ -113,5 +131,7 @@ def userValidate():
         log.error(str(e))
 
         # send failure response
-        response = { 'success': False }
-        return json.dumps(response)
+        return json.dumps({ 
+            'success': False,
+            'critical': False
+        })
