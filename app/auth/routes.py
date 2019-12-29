@@ -1,22 +1,24 @@
-from flask import request, Blueprint
+from flask import request
 from random import randint
 from datetime import datetime
-import json, time, hashlib, secrets
+import json, hashlib, secrets
 
 from app import app, log, mongo, twilio
 from app.util.token import authenticateBaseToken
+from app.util.exception import CriticalException
 
-@app.route('/user/phone')
+@app.route('/auth/phone')
 def userPhone():
     internalSalt = 'PhoneAuth'
     try:
 
-        # fetch request phone number
+        # fetch request params
         baseToken = request.args['base_token']
         phoneNumber = request.args['phone_number']
 
         # authenticate request
-        assert(authenticateBaseToken(baseToken, internalSalt, phoneNumber))
+        if not authenticateBaseToken(baseToken, internalSalt, phoneNumber):
+            raise CriticalException
 
         # generate/store validation number
         validationCode = ''.join(['{}'.format(randint(0, 9)) for phoneNumber in range(0, 6)])
@@ -37,11 +39,11 @@ def userPhone():
 
         # send success response
         return json.dumps({ 
-            'success': True,
-            'critical': False
+            'success': True
         })
 
-    except AssertionError:
+    except CriticalException:
+        log.error('Critical exception in /main/home')
 
         # send critical response
         return json.dumps({ 
@@ -49,10 +51,8 @@ def userPhone():
             'critical': True
         })
 
-    except Exception as e:
-
-        # log error
-        log.error(str(e))
+    except Exception:
+        log.error('Exception in /main/home')
 
         # send failure response
         return json.dumps({ 
@@ -60,17 +60,18 @@ def userPhone():
             'critical': False
         })
 
-@app.route('/user/validate')
+@app.route('/auth/validate')
 def userValidate():
     internalSalt = 'ValidateAuth'
     try:
         
-         # fetch request phone number
+         # fetch request params
         baseToken = request.args['base_token']
         validationCode = request.args['validation_code']
 
         # authenticate request
-        assert(authenticateBaseToken(baseToken, internalSalt, validationCode))
+        if not authenticateBaseToken(baseToken, internalSalt, validationCode):
+            raise CriticalException
 
         # fetch validated user
         potUsers = mongo.db.pot_users.find({ 'validation_code': validationCode })
@@ -113,11 +114,11 @@ def userValidate():
         # send success response
         return json.dumps({ 
             'success': True,
-            'critical': False,
             'access_token': accessToken
         })
 
-    except AssertionError:
+    except CriticalException:
+        log.error('Critical exception in /main/home')
 
         # send critical response
         return json.dumps({ 
@@ -125,10 +126,8 @@ def userValidate():
             'critical': True
         })
 
-    except Exception as e:
-
-        # log error
-        log.error(str(e))
+    except Exception:
+        log.error('Exception in /main/home')
 
         # send failure response
         return json.dumps({ 

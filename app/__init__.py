@@ -22,5 +22,5 @@ twilio = Client(app.config['TWILIO_SID'], app.config['TWILIO_AUTH_TOKEN'])
 # connect mongo db
 mongo = PyMongo(app)
 
-from app.loot import routes
-from app.user import routes
+from app.main import routes
+from app.auth import routes
