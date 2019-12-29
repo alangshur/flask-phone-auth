@@ -1,8 +1,7 @@
 from flask import request, Blueprint
 from random import randint
 from datetime import datetime
-import json
-import hashlib
+import json, time, hashlib, secrets
 
 from app import app, mongo, client
 
@@ -51,33 +50,47 @@ def userValidate():
         # fetch request number (validation code)
         num = request.args['num']
 
-        # # fetch validated user
-        # potUsers = mongo.db.pot_users.find({
-        #     'validation_code': num
-        # })
+        # fetch validated user
+        potUsers = mongo.db.pot_users.find({ 'validation_code': num })
 
-        # # verify correct code
-        # if potUsers.count() != 1: raise Exception
-        # for potUser in potUsers:
-        #     phoneNumber = potUser['phone_number']
-        phoneNumber = num
+        # verify correct code
+        if potUsers.count() != 1: raise Exception
+        for potUser in potUsers: phoneNumber = potUser['phone_number']
+
+        # remove validated user
+        mongo.db.pot_users.delete_one({ 'validation_code': num })
 
         # determine user ID
         hashFunc = hashlib.md5()
         saltedInput = (phoneNumber + app.config['USER_ID_SALT']).encode('utf-8')
         hashFunc.update(saltedInput)
-        userID = hashFunc.hexdigest()
-
-        # check if user already exists
-
+        userID = hashFunc.hexdigest()       
         
-        # generate user authentication code
-
+        # generate user access token
+        accessToken = secrets.token_hex(16)
 
         # store user profile
-        
+        user = mongo.db.users.find_one({ 'user_id': userID })
+        if user:
+            mongo.db.users.update_one({'user_id': userID }, {
+                '$set': {
+                    'user_id': userID,
+                    'account_amount': user['account_amount'],
+                    'access_token': accessToken
+                }
+            })
+        else:
+            mongo.db.users.insert_one({
+                'user_id': userID,
+                'account_amount': 0,
+                'access_token': accessToken
+            })
+ 
         # send success response
-        response = { 'success': True }
+        response = { 
+            'success': True,
+            'access_token': accessToken
+        }
         return json.dumps(response)
 
     except Exception as e:

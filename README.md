@@ -39,7 +39,7 @@ With the project and environment set up, simply run the following command to lau
 {
     'user_id': '[USER_ID]',
     'account_amount': '[ACCOUNT_AMOUNT]',
-    
+    'access_token': '[ACCESS_TOKEN]'
 }
 ```
 
