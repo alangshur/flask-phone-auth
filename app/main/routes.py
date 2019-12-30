@@ -2,7 +2,7 @@ from flask import request
 from flask_limiter import Limiter
 import json, time
 
-from app import app, log, mongo, twilio, limiter
+from app import app, log, mongo, twilio, limiter, cache
 from app.util.token import authenticateBaseToken
 from app.util.exception import CriticalException, RefreshException
 
@@ -13,6 +13,7 @@ from app.util.exception import CriticalException, RefreshException
 def home():
     internalSalt = 'HomeMain'
     try: 
+        start = time.time()
 
         # fetch request params
         artificialTarget = request.args['artificial_target']
@@ -26,10 +27,17 @@ def home():
             raise CriticalException
 
         # authenticate request (access token)
-        users = mongo.db.users.find({ 'access_token': accessToken })
-        if users.count() != 1: raise RefreshException
+        if not cache.get(accessToken):
+            users = mongo.db.users.find({ 'access_token': accessToken })
+            if users.count() != 1: raise RefreshException
 
-        ## USE FLASK CACHE TO CACHE RECENT ACCESS TOKENS (WITH TIMEOUT)
+            # short-term cache access token
+            cache.add(accessToken, True)
+            cache.set(accessToken, True)
+        else: cache.set(accessToken, True)
+
+        end = time.time()
+        print(end - start)
 
         # send success response
         return json.dumps({ 
@@ -39,7 +47,8 @@ def home():
 
     except CriticalException:
         log.error('Critical exception in /main/home')
-
+        cache.delete(request.headers['access_token'])
+        
         # send critical response
         return json.dumps({ 
             'success': False,
@@ -49,7 +58,8 @@ def home():
 
     except RefreshException:
         log.error('Refresh exception in /main/home')
-        
+        cache.delete(request.headers['access_token'])
+
         # send refresh response
         return json.dumps({ 
             'success': False,
@@ -59,6 +69,7 @@ def home():
 
     except Exception as e:
         log.error('Exception in /main/home: ' + str(e))
+        cache.delete(request.headers['access_token'])
 
         # send failure response
         return json.dumps({ 

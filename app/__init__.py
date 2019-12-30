@@ -1,10 +1,13 @@
 from flask import Flask
-from config import DevelopmentConfig, ProductionConfig
 from flask_pymongo import PyMongo
 from flask.logging import create_logger
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_caching import Cache
 from twilio.rest import Client
+
+from config import DevelopmentConfig, ProductionConfig
+
 import os
 
 # launch flask app
@@ -20,6 +23,13 @@ elif os.environ.get('FLASK_ENV') == 'production':
     app.config.from_object(ProductionConfig)
 else: log.error('Invalid Flask environment.')
 
+# connect flask caching
+cache = Cache(app, config={
+    'CACHE_TYPE': 'simple',
+    'CACHE_DEFAULT_TIMEOUT': 5,
+    'CACHE_THRESHOLD': 1000000
+})
+
 # connect flask limiter
 limiter = Limiter(
     app,
@@ -30,7 +40,7 @@ limiter = Limiter(
 # connect Twilio client
 twilio = Client(app.config['TWILIO_SID'], app.config['TWILIO_AUTH_TOKEN'])
 
-# connect mongo db
+# connect mongo database
 mongo = PyMongo(app)
 
 from app.main import routes
