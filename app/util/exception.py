@@ -1,3 +1,5 @@
+from app import app
+
 class CriticalException(Exception):
     pass
 

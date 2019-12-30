@@ -1,25 +1,35 @@
 from flask import request
+from flask_limiter import Limiter
 import json, time
 
-from app import app, log, mongo, twilio
+from app import app, log, mongo, twilio, limiter
 from app.util.token import authenticateBaseToken
 from app.util.exception import CriticalException, RefreshException
 
+@limiter.limit('1 per second')
+@limiter.limit('1 per second', lambda: request.headers['base_token'])
+@limiter.limit('1 per second', lambda: request.headers['access_token'])
 @app.route('/main/home')
 def home():
     internalSalt = 'HomeMain'
     try: 
 
-        # authenticate request (base token)
-        baseToken = request.args['base_token']
+        # fetch request params
         artificialTarget = request.args['artificial_target']
+
+        # fetch header args
+        baseToken = request.headers['base_token']
+        accessToken = request.headers['access_token']
+
+        # authenticate request (base token)
         if not authenticateBaseToken(baseToken, internalSalt, artificialTarget):
             raise CriticalException
 
         # authenticate request (access token)
-        accessToken = request.args['access_token']
         users = mongo.db.users.find({ 'access_token': accessToken })
         if users.count() != 1: raise RefreshException
+
+        ## USE FLASK CACHE TO CACHE RECENT ACCESS TOKENS (WITH TIMEOUT)
 
         # send success response
         return json.dumps({ 
@@ -48,7 +58,7 @@ def home():
         })
 
     except Exception as e:
-        log.error('Exception in /main/home')
+        log.error('Exception in /main/home: ' + str(e))
 
         # send failure response
         return json.dumps({ 

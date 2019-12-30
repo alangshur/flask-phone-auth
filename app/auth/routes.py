@@ -3,18 +3,23 @@ from random import randint
 from datetime import datetime
 import json, hashlib, secrets
 
-from app import app, log, mongo, twilio
+from app import app, log, mongo, twilio, limiter
 from app.util.token import authenticateBaseToken
 from app.util.exception import CriticalException
 
+@limiter.limit('1 per second')
+@limiter.limit('1 per second', lambda: request.args['phone_number'])
+@limiter.limit('1 per second', lambda: request.args['base_token'])
 @app.route('/auth/phone')
 def userPhone():
     internalSalt = 'PhoneAuth'
     try:
 
         # fetch request params
-        baseToken = request.args['base_token']
         phoneNumber = request.args['phone_number']
+
+        # fetch header args
+        baseToken = request.headers['base_token']
 
         # authenticate request
         if not authenticateBaseToken(baseToken, internalSalt, phoneNumber):
@@ -51,8 +56,8 @@ def userPhone():
             'critical': True
         })
 
-    except Exception:
-        log.error('Exception in /main/home')
+    except Exception as e:
+        log.error('Exception in /main/home: ' + str(e))
 
         # send failure response
         return json.dumps({ 
@@ -60,14 +65,19 @@ def userPhone():
             'critical': False
         })
 
+@limiter.limit('1 per second')
+@limiter.limit('1 per second', lambda: request.args['validation_code'])
+@limiter.limit('1 per second', lambda: request.args['base_token'])
 @app.route('/auth/validate')
 def userValidate():
     internalSalt = 'ValidateAuth'
     try:
-        
-         # fetch request params
-        baseToken = request.args['base_token']
+
+        # fetch request params
         validationCode = request.args['validation_code']
+
+        # fetch header args
+        baseToken = request.headers['base_token']
 
         # authenticate request
         if not authenticateBaseToken(baseToken, internalSalt, validationCode):
@@ -126,8 +136,8 @@ def userValidate():
             'critical': True
         })
 
-    except Exception:
-        log.error('Exception in /main/home')
+    except Exception as e:
+        log.error('Exception in /main/home: ' + str(e))
 
         # send failure response
         return json.dumps({ 
