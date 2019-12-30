@@ -9,7 +9,7 @@ from app.util.exception import CriticalException
 
 @limiter.limit('1 per second')
 @limiter.limit('1 per second', lambda: request.args['phone_number'])
-@limiter.limit('1 per second', lambda: request.args['base_token'])
+@limiter.limit('1 per second', lambda: request.headers['base_token'])
 @app.route('/auth/phone')
 def userPhone():
     internalSalt = 'PhoneAuth'
@@ -67,7 +67,7 @@ def userPhone():
 
 @limiter.limit('1 per second')
 @limiter.limit('1 per second', lambda: request.args['validation_code'])
-@limiter.limit('1 per second', lambda: request.args['base_token'])
+@limiter.limit('1 per second', lambda: request.headers['base_token'])
 @app.route('/auth/validate')
 def userValidate():
     internalSalt = 'ValidateAuth'

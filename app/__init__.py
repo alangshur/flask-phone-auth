@@ -26,7 +26,7 @@ else: log.error('Invalid Flask environment.')
 # connect flask caching
 cache = Cache(app, config={
     'CACHE_TYPE': 'simple',
-    'CACHE_DEFAULT_TIMEOUT': 5,
+    'CACHE_DEFAULT_TIMEOUT': 3600,
     'CACHE_THRESHOLD': 1000000
 })
 

@@ -13,7 +13,6 @@ from app.util.exception import CriticalException, RefreshException
 def home():
     internalSalt = 'HomeMain'
     try: 
-        start = time.time()
 
         # fetch request params
         artificialTarget = request.args['artificial_target']
@@ -36,13 +35,9 @@ def home():
             cache.set(accessToken, True)
         else: cache.set(accessToken, True)
 
-        end = time.time()
-        print(end - start)
-
         # send success response
         return json.dumps({ 
             'success': True,
-            'payload': 'Successful double authentication!'
         })
 
     except CriticalException:
